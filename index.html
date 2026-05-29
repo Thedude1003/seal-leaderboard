@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEAL Team Leaderboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07111E;--surf:#0D1B2A;--surf2:#122236;
+  --border:#1C3050;--border2:#253F60;
+  --text:#E8F0FF;--text2:#7A9ABB;--text3:#3D5470;
+  --gold:#F5B500;--gold2:#3A2C00;--gold-glow:rgba(245,181,0,.2);
+  --silver:#A0B4CC;--bronze:#C07840;
+  --t1:#4AA0F0;--t1d:#0D3060;
+  --t2:#F5A030;--t2d:#3A2008;
+  --t3:#00CC96;--t3d:#003828;
+  --neg:#FF6060;
+  --r:10px;--r-sm:6px;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --cond:'Barlow Condensed',system-ui,sans-serif;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px}
+.wrap{max-width:980px;margin:0 auto;padding:0 18px 60px}
+
+/* header */
+.hdr{background:linear-gradient(180deg,#0A1828,#060F1C);border-bottom:1px solid var(--border);margin-bottom:28px}
+.hdr-in{max-width:980px;margin:0 auto;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.hdr-brand{display:flex;align-items:center;gap:12px}
+.hdr-icon{width:42px;height:42px;background:var(--surf2);border:1px solid var(--border2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.hdr-t{font-family:var(--cond);font-size:23px;font-weight:800;letter-spacing:.04em;line-height:1}
+.hdr-s{font-size:12px;color:var(--text3);margin-top:2px}
+.pbadge{background:var(--gold);color:#000;font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;letter-spacing:.06em;font-family:var(--cond)}
+.ptag{font-size:11px;color:var(--text3);margin-top:4px;text-align:right}
+
+/* upload */
+.dz{border:2px dashed var(--border2);border-radius:var(--r);padding:32px 24px;text-align:center;transition:border-color .15s,background .15s;margin-bottom:28px}
+.dz.drag{border-color:var(--t1);background:rgba(74,160,240,.05)}
+.dz.ok{border-color:var(--pos,#00CC96);background:rgba(0,204,150,.05)}
+.dz-icon{font-size:32px;margin-bottom:8px}
+.dz-title{font-size:16px;font-weight:600;margin-bottom:4px}
+.dz-sub{font-size:13px;color:var(--text2)}
+.dz-browse{display:inline-block;margin-top:12px;padding:8px 20px;border:1px solid var(--border2);border-radius:var(--r-sm);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;background:none;font-family:var(--sans);transition:all .15s}
+.dz-browse:hover{border-color:var(--t1);color:var(--t1);background:rgba(74,160,240,.08)}
+.err-box{background:rgba(255,80,80,.08);border:1px solid rgba(255,80,80,.3);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;color:#FF9090;margin-top:10px;text-align:left;display:none;white-space:pre-wrap;line-height:1.5}
+.err-box.show{display:block}
+
+/* kpi */
+.kpi-bar{display:flex;justify-content:center;gap:8px;margin-bottom:30px}
+.kb{padding:9px 22px;border:1px solid var(--border2);background:var(--surf);color:var(--text2);font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:.05em;border-radius:var(--r-sm);cursor:pointer;transition:all .15s;text-transform:uppercase}
+.kb:hover{color:var(--text);background:var(--surf2)}
+.kb.a-ns{background:var(--t1d);border-color:var(--t1);color:var(--t1)}
+.kb.a-cr{background:var(--t2d);border-color:var(--t2);color:var(--t2)}
+.kb.a-al{background:var(--t3d);border-color:var(--t3);color:var(--t3)}
+
+/* section */
+.sec{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--text3);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.sec::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* podium */
+.pod-wrap{display:flex;align-items:flex-end;justify-content:center;gap:6px;margin-bottom:36px;min-height:250px}
+.pod-col{display:flex;flex-direction:column;align-items:center;flex:1;max-width:210px;opacity:0;animation:up .4s ease forwards}
+.pod-col:nth-child(1){animation-delay:.12s}
+.pod-col:nth-child(2){animation-delay:.04s}
+.pod-col:nth-child(3){animation-delay:.2s}
+.pod-info{text-align:center;padding:0 8px 10px;width:100%}
+.pod-crown{font-size:24px;margin-bottom:4px;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.pod-av{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:17px;font-weight:700;margin:0 auto 8px;border:2px solid transparent}
+.pod-col.p1 .pod-av{width:62px;height:62px;font-size:20px}
+.pod-nm{font-family:var(--cond);font-size:15px;font-weight:700;color:var(--text)}
+.pod-tm{font-size:11px;margin-top:2px}
+.pod-val{font-family:var(--cond);font-size:20px;font-weight:800;margin-top:5px;line-height:1}
+.p1 .pod-val{font-size:26px}
+.pod-blk{width:100%;display:flex;align-items:center;justify-content:center;border-radius:6px 6px 0 0}
+.pod-blk span{font-family:var(--cond);font-size:30px;font-weight:800;opacity:.6}
+.p1 .pod-blk{background:linear-gradient(180deg,#2E2200,#181100);border:1px solid #4A3800;border-bottom:none}
+.p1 .pod-blk span,.p1 .pod-val{color:var(--gold)}
+.p2 .pod-blk{background:linear-gradient(180deg,#1A2330,#101820);border:1px solid #283848;border-bottom:none}
+.p2 .pod-blk span,.p2 .pod-val{color:var(--silver)}
+.p3 .pod-blk{background:linear-gradient(180deg,#281A0C,#180F06);border:1px solid #382818;border-bottom:none}
+.p3 .pod-blk span,.p3 .pod-val{color:var(--bronze)}
+.pod-base{height:5px;background:var(--border);border-radius:0 0 4px 4px;width:calc(100% + 2px);margin:0 -1px}
+
+/* board */
+.card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:border-color .15s;opacity:0;animation:up .3s ease forwards}
+.card:nth-child(1){animation-delay:.06s}.card:nth-child(2){animation-delay:.11s}.card:nth-child(3){animation-delay:.16s}
+.card.c1{animation:up .3s ease .06s forwards,glow 3s ease-in-out 1.5s infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 18px 3px var(--gold-glow)}}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.card:hover{border-color:var(--border2)}
+.card.open{border-color:var(--border2)}
+.trow{display:grid;grid-template-columns:52px 54px 1fr 104px 160px 34px;align-items:center;gap:14px;padding:14px 16px;cursor:pointer;user-select:none}
+@media(max-width:620px){.trow{grid-template-columns:40px 46px 1fr 80px 32px;gap:10px;padding:12px 14px}.bcol{display:none}}
+.rk{font-family:var(--cond);font-size:34px;font-weight:800;text-align:center;line-height:1}
+.rk.r1{color:var(--gold);text-shadow:0 0 18px var(--gold-glow)}.rk.r2{color:var(--silver)}.rk.r3{color:var(--bronze)}
+.av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:15px;font-weight:700;border:2px solid transparent}
+.tlnm{font-size:15px;font-weight:600}
+.tltm{font-size:12px;margin-top:1px}
+.kval{text-align:right}
+.kvn{font-family:var(--cond);font-size:24px;font-weight:700;line-height:1}
+.kvl{font-size:11px;color:var(--text3);margin-top:2px}
+.bcol{display:flex;flex-direction:column;gap:5px}
+.btrk{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.bfil{height:100%;border-radius:3px;transition:width .55s cubic-bezier(.4,0,.2,1)}
+.bmeta{display:flex;justify-content:space-between;font-size:10px;color:var(--text3)}
+.chv{color:var(--text3);font-size:22px;transition:transform .2s;text-align:center;line-height:1}
+.card.open .chv{transform:rotate(180deg)}
+.bdg{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px;letter-spacing:.04em;vertical-align:middle;font-family:var(--cond)}
+.fire{background:rgba(255,120,0,.15);color:#FF9030;border:1px solid rgba(255,120,0,.3)}
+.gold-bdg{background:var(--gold-glow);color:var(--gold);border:1px solid rgba(245,181,0,.3)}
+
+/* reps */
+.reps{display:none;border-top:1px solid var(--border)}
+.reps.open{display:block}
+.rh{display:grid;grid-template-columns:1fr 90px 120px;gap:8px;padding:8px 16px 6px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;background:var(--surf2)}
+.rh span:nth-child(2){text-align:right}
+.rr{display:grid;grid-template-columns:1fr 90px 120px;align-items:center;gap:8px;padding:8px 16px;border-top:1px solid var(--border)}
+.rr:hover{background:var(--surf2)}
+.rnm{font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rv{font-size:13px;font-weight:600;text-align:right;white-space:nowrap}
+.rbar{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.rbfil{height:100%;border-radius:2px;transition:width .4s ease}
+.avgr{background:var(--surf2)}.avgr .rnm{color:var(--text2);font-style:italic}.avgr .rv{color:var(--text2)}
+.vnull{color:var(--text3)}.vneg{color:var(--neg)}
+
+/* empty */
+.empty{padding:60px 24px;text-align:center}
+.empty-icon{font-size:44px;margin-bottom:14px;opacity:.4}
+.empty-t{font-size:17px;font-weight:600;color:var(--text2);margin-bottom:6px}
+.empty-s{font-size:14px;color:var(--text3)}
+
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-in">
+    <div class="hdr-brand">
+      <div class="hdr-icon">&#127697;</div>
+      <div>
+        <div class="hdr-t">SEAL Team Leaderboard</div>
+        <div class="hdr-s">Sales Execution &amp; Advancement Leadership</div>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div class="pbadge" id="pbadge">Drop File to Load</div>
+      <div class="ptag"   id="ptag">No data loaded</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- Drop zone — file input lives OUTSIDE, not inside -->
+  <div class="dz" id="dz">
+    <div class="dz-icon"  id="dz-icon">&#128193;</div>
+    <div class="dz-title" id="dz-title">Drop your daily Excel file here</div>
+    <div class="dz-sub"   id="dz-sub">leaderboard_data_template.xlsx &mdash; or any .xlsx / .csv with the same columns</div>
+    <button class="dz-browse" id="browse-btn" onclick="document.getElementById('fi').click()">Browse files</button>
+    <div class="err-box" id="err-box"></div>
+  </div>
+  <input type="file" id="fi" accept=".xlsx,.xls,.csv" style="display:none">
+
+  <!-- Main content -->
+  <div id="main" style="display:none">
+    <div class="kpi-bar">
+      <button class="kb a-ns" id="btn-ns" onclick="setKpi('netSales')">&#128176; Net Sales</button>
+      <button class="kb"      id="btn-cr" onclick="setKpi('closeRate')">&#127919; Close %</button>
+      <button class="kb"      id="btn-al" onclick="setKpi('adl')">&#128200; ADL</button>
+    </div>
+    <div class="sec">Team Lead Rankings</div>
+    <div class="pod-wrap" id="pod"></div>
+    <div class="sec">Full Standings</div>
+    <div id="board"></div>
+  </div>
+
+  <div class="empty" id="empty">
+    <div class="empty-icon">&#128202;</div>
+    <div class="empty-t">Waiting for today's file</div>
+    <div class="empty-s">Drop <strong>leaderboard_data_template.xlsx</strong> above to populate the leaderboard</div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ── Fixed team + role assignments ────────────────────────────────────────
+// Keys are lowercase trimmed names. Update this if the roster ever changes.
+const ROSTER = {
+  "mike tigges":      { team:1, role:'tl'  },
+  "george heller":    { team:2, role:'tl'  },
+  "nick dormitorio":  { team:3, role:'tl'  },
+  "michael bobak":    { team:1, role:'rep' },
+  "don baier":        { team:1, role:'rep' },
+  "david pate":       { team:1, role:'rep' },
+  "josh larson":      { team:1, role:'rep' },
+  "gregory kentra":   { team:1, role:'rep' },
+  "stephen petersen": { team:2, role:'rep' },
+  "jeff sullivan":    { team:2, role:'rep' },
+  "jesse xidis":      { team:2, role:'rep' },
+  "brian schweihs":   { team:2, role:'rep' },
+  "michael scardino": { team:2, role:'rep' },
+  "walter hollister": { team:3, role:'rep' },
+  "paul grossman":    { team:3, role:'rep' },
+  "anthony decker":   { team:3, role:'rep' },
+  "omar pena":        { team:3, role:'rep' },
+  "zachary klein":    { team:3, role:'rep' },
+};
+
+const TC = {
+  1:{ name:'SEAL Team 1', c:'#4AA0F0', d:'#0D3060' },
+  2:{ name:'SEAL Team 2', c:'#F5A030', d:'#3A2008' },
+  3:{ name:'SEAL Team 3', c:'#00CC96', d:'#003828' },
+};
+const RC   = ['#F5B500','#A0B4CC','#C07840'];
+const RCLS = ['r1','r2','r3'];
+
+let gData=null, kpi='netSales', exp={};
+
+// ── Drag & Drop ──────────────────────────────────────────────────────────
+const dz = document.getElementById('dz');
+const fi = document.getElementById('fi');
+
+dz.addEventListener('dragenter', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', e => { if (!dz.contains(e.relatedTarget)) dz.classList.remove('drag'); });
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+});
+fi.addEventListener('change', e => { if (e.target.files[0]) processFile(e.target.files[0]); });
+
+// ── File processor ───────────────────────────────────────────────────────
+function processFile(file) {
+  showErr('');
+  setDz('&#8987;', 'Reading ' + file.name + '…', '');
+
+  if (!window.XLSX) {
+    showErr('SheetJS library not loaded. Check your internet connection and reload the page.');
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onerror = () => showErr('Could not read the file. Try again.');
+
+  reader.onload = e => {
+    try {
+      let rows = [];
+      const ext = file.name.split('.').pop().toLowerCase();
+
+      if (ext === 'csv') {
+        // Parse CSV manually using XLSX (handles it fine)
+        const wb = XLSX.read(e.target.result, { type: 'binary' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      } else {
+        // XLSX / XLS
+        const wb = XLSX.read(e.target.result, { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      }
+
+      if (!rows.length) {
+        showErr('The file appears empty — no data rows found after the header.');
+        setDz('&#10060;', 'Empty file', '');
+        return;
+      }
+
+      buildAndRender(rows, file.name);
+    } catch(err) {
+      showErr('Failed to parse file: ' + err.message);
+      setDz('&#10060;', 'Parse error', err.message);
+    }
+  };
+
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'csv') {
+    reader.readAsBinaryString(file);
+  } else {
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+// ── Column finder ────────────────────────────────────────────────────────
+// Returns the value for the first column whose normalised header matches any of `keys`.
+// If none match, falls back to column by index position.
+function findCol(row, headers, ...keys) {
+  const norm = k => String(k).toLowerCase().replace(/[^a-z0-9]/g, '');
+  const targets = keys.map(norm);
+  for (const h of headers) {
+    if (targets.includes(norm(h))) return row[h];
+  }
+  return undefined;
+}
+
+// ── Build data from rows ─────────────────────────────────────────────────
+function buildAndRender(rows, fname) {
+  const headers = Object.keys(rows[0]);
+
+  // The first column is always the name (even if it says "Sales Rep 1 " etc.)
+  const nameCol = headers[0];
+
+  // Identify KPI columns flexibly
+  // Close %  → header contains "close"
+  // Net Sales → header contains "net" or "netsales"
+  // ADL       → header contains "adl"
+  function findHeader(...keys) {
+    const norm = k => String(k).toLowerCase().replace(/[^a-z0-9]/g, '');
+    const targets = keys.map(norm);
+    return headers.find(h => targets.includes(norm(h)));
+  }
+
+  const closeCol = findHeader('close%', 'close rate', 'closerate', 'close', 'cr');
+  const nsCol    = findHeader('netsales', 'net sales', 'net_sales', 'netsale', 'sales');
+  const adlCol   = findHeader('adl', 'avg deal', 'avgdeal', 'averagedeal');
+
+  if (!closeCol || !nsCol || !adlCol) {
+    showErr(
+      'Could not find the expected KPI columns.\n\n' +
+      'Columns found in your file: ' + headers.join(', ') + '\n\n' +
+      'Expected columns named: Close % (or Close Rate), Net Sales, ADL\n' +
+      'The first column is treated as the name column regardless of its header.'
+    );
+    setDz('&#10060;', 'Column mismatch', 'See details below');
+    return;
+  }
+
+  const T = {
+    1:{ id:1, tl:null, members:[] },
+    2:{ id:2, tl:null, members:[] },
+    3:{ id:3, tl:null, members:[] },
+  };
+
+  let matched = 0, skipped = [];
+
+  rows.forEach(row => {
+    const name = String(row[nameCol] || '').trim();
+    if (!name) return;
+
+    const assignment = ROSTER[name.toLowerCase()];
+    if (!assignment) {
+      skipped.push(name);
+      return;
+    }
+
+    const closeRaw = row[closeCol];
+    const nsRaw    = row[nsCol];
+    const adlRaw   = row[adlCol];
+
+    // Close rate: if stored as decimal (0.40) keep as-is; if >1 assume percentage and convert
+    let cr = parseFloat(closeRaw);
+    if (isNaN(cr)) cr = null;
+    else if (cr > 1.5) cr = cr / 100;
+
+    const ns  = numOrNull(nsRaw);
+    const adl = numOrNull(adlRaw);
+
+    const person = { name, closeRate: cr, netSales: ns, adl };
+
+    if (assignment.role === 'tl') T[assignment.team].tl = person;
+    else                          T[assignment.team].members.push(person);
+    matched++;
+  });
+
+  const teams = Object.values(T).filter(t => t.tl);
+
+  if (!teams.length) {
+    showErr(
+      'No team leaders found after matching names.\n\n' +
+      'Names in the file: ' + rows.map(r => String(r[nameCol]||'').trim()).filter(Boolean).join(', ') + '\n\n' +
+      'Expected TL names: Mike Tigges, George Heller, Nick Dormitorio\n\n' +
+      'Check for extra spaces or spelling differences in the file.'
+    );
+    setDz('&#10060;', 'No TLs matched', 'See details below');
+    return;
+  }
+
+  if (skipped.length) {
+    showErr('Note: ' + skipped.length + ' name(s) not in the roster were skipped: ' + skipped.join(', '));
+  }
+
+  gData = {
+    teams,
+    loaded: new Date().toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })
+  };
+
+  dz.classList.add('ok');
+  setDz('&#9989;', fname + '  —  ' + matched + ' records loaded', 'Drop a new file anytime to refresh');
+  document.getElementById('browse-btn').textContent = 'Load different file';
+  document.getElementById('pbadge').textContent     = 'Live Data';
+  document.getElementById('ptag').textContent       = 'Updated ' + gData.loaded;
+  document.getElementById('empty').style.display    = 'none';
+  document.getElementById('main').style.display     = 'block';
+  setKpi('netSales');
+}
+
+function numOrNull(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const x = parseFloat(String(v).replace(/[$,\s]/g, ''));
+  return isNaN(x) ? null : x;
+}
+
+function setDz(icon, title, sub) {
+  document.getElementById('dz-icon').innerHTML  = icon;
+  document.getElementById('dz-title').textContent = title;
+  document.getElementById('dz-sub').textContent   = sub;
+}
+
+function showErr(msg) {
+  const el = document.getElementById('err-box');
+  el.textContent = msg;
+  el.classList.toggle('show', !!msg);
+}
+
+// ── KPI toggle ───────────────────────────────────────────────────────────
+function setKpi(k) {
+  kpi = k;
+  document.getElementById('btn-ns').className = 'kb' + (k==='netSales'  ? ' a-ns' : '');
+  document.getElementById('btn-cr').className = 'kb' + (k==='closeRate' ? ' a-cr' : '');
+  document.getElementById('btn-al').className = 'kb' + (k==='adl'       ? ' a-al' : '');
+  render();
+}
+
+function getV(p) { return kpi==='netSales' ? p.netSales : kpi==='closeRate' ? p.closeRate : p.adl; }
+
+function fmt(v, compact) {
+  if (v === null || v === undefined) return '\u2014';
+  if (kpi === 'closeRate') return (v * 100).toFixed(1) + '%';
+  const abs = Math.abs(v), neg = v < 0;
+  if (compact && abs >= 1000) return (neg?'-$':'$') + (abs/1000).toFixed(1) + 'k';
+  return (neg?'-$':'$') + abs.toLocaleString('en-US', { maximumFractionDigits: 0 });
+}
+
+function ini(n) { return n.split(' ').map(x => x[0]).join('').slice(0,2).toUpperCase(); }
+
+function teamAvg(members) {
+  const v = members.map(m => getV(m)).filter(x => x !== null && x !== undefined);
+  return v.length ? v.reduce((a,b) => a+b, 0) / v.length : null;
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function render() {
+  if (!gData) return;
+  const sorted = [...gData.teams].sort((a,b) => (getV(b.tl)??-Infinity) - (getV(a.tl)??-Infinity));
+  const maxTL  = Math.max(...sorted.map(t => getV(t.tl)??0), 1);
+  renderPod(sorted);
+  renderBoard(sorted, maxTL);
+}
+
+function renderPod(sorted) {
+  const slots   = [sorted[1], sorted[0], sorted[2]];
+  const pClass  = ['p2','p1','p3'];
+  const rankIdx = [1, 0, 2];
+  const heights = [88, 132, 56];
+
+  document.getElementById('pod').innerHTML = slots.map((team, si) => {
+    if (!team) return '';
+    const ri  = rankIdx[si];
+    const cfg = TC[team.id] || TC[1];
+    const val = getV(team.tl);
+    const crown = ri===0 ? '<div class="pod-crown">&#128081;</div>' : '';
+    const fire  = ri===0 ? ' &#128293;' : '';
+    return `<div class="pod-col ${pClass[si]}">
+      <div class="pod-info">
+        ${crown}
+        <div class="pod-av" style="background:${cfg.d};border-color:${cfg.c};color:${cfg.c}">${ini(team.tl.name)}</div>
+        <div class="pod-nm">${team.tl.name}${fire}</div>
+        <div class="pod-tm" style="color:${cfg.c}">${cfg.name}</div>
+        <div class="pod-val">${fmt(val)}</div>
+      </div>
+      <div class="pod-blk" style="height:${heights[si]}px"><span>${ri+1}</span></div>
+      <div class="pod-base"></div>
+    </div>`;
+  }).join('');
+}
+
+function renderBoard(sorted, maxTL) {
+  const allMem = gData.teams.flatMap(t => t.members);
+  const maxMem = Math.max(...allMem.map(m => getV(m)).filter(v => v!=null && v>0), 1);
+  const kl     = kpi==='netSales' ? 'Net Sales' : kpi==='closeRate' ? 'Close %' : 'ADL';
+
+  document.getElementById('board').innerHTML = sorted.map((team, ri) => {
+    const val    = getV(team.tl);
+    const pct    = Math.max(0, ((val??0) / maxTL) * 100);
+    const cfg    = TC[team.id] || TC[1];
+    const isOpen = !!exp[team.id];
+
+    const crown = ri===0 ? '<span class="bdg gold-bdg">&#128081; #1</span>'      : '';
+    const fire  = ri===0 ? '<span class="bdg fire">&#128293; LEADER</span>' : '';
+
+    const sortedMem = [...team.members].sort((a,b) => (getV(b)??-Infinity) - (getV(a)??-Infinity));
+    const avg       = teamAvg(team.members);
+
+    const mRows = sortedMem.map(m => {
+      const mv   = getV(m);
+      const mpct = mv!=null && mv>0 ? Math.min(100, (mv/maxMem)*100) : 0;
+      const neg  = mv!==null && mv<0;
+      const vc   = mv===null ? 'vnull' : neg ? 'vneg' : '';
+      return `<div class="rr">
+        <div class="rnm">${m.name}</div>
+        <div class="rv ${vc}">${fmt(mv)}</div>
+        <div class="rbar"><div class="rbfil" style="width:${mpct}%;background:${neg?'#FF6060':cfg.c}"></div></div>
+      </div>`;
+    }).join('');
+
+    const avgRow = avg!==null ? `<div class="rr avgr">
+      <div class="rnm">Team avg</div>
+      <div class="rv">${fmt(avg)}</div><div></div>
+    </div>` : '';
+
+    return `<div class="card${isOpen?' open':''}${ri===0?' c1':''}" id="card-${team.id}">
+      <div class="trow" onclick="toggle(${team.id})">
+        <div class="rk ${RCLS[ri]}">${ri+1}</div>
+        <div class="av" style="background:${cfg.d};border-color:${cfg.c};color:${cfg.c}">${ini(team.tl.name)}</div>
+        <div>
+          <div class="tlnm">${team.tl.name}${crown}${fire}</div>
+          <div class="tltm" style="color:${cfg.c}">${cfg.name} &bull; ${team.members.length} reps</div>
+        </div>
+        <div class="kval">
+          <div class="kvn" style="color:${RC[ri]}">${fmt(val, true)}</div>
+          <div class="kvl">${kl}</div>
+        </div>
+        <div class="bcol">
+          <div class="btrk"><div class="bfil" style="width:${pct}%;background:${cfg.c}"></div></div>
+          <div class="bmeta"><span>${team.members.length} reps</span><span>${Math.round(pct)}% of leader</span></div>
+        </div>
+        <div class="chv">&#8964;</div>
+      </div>
+      <div class="reps${isOpen?' open':''}" id="rep-${team.id}">
+        <div class="rh"><span>Rep</span><span>${kl}</span><span></span></div>
+        ${mRows}${avgRow}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggle(id) {
+  exp[id] = !exp[id];
+  const c = document.getElementById('card-'+id);
+  const r = document.getElementById('rep-'+id);
+  if (c) c.classList.toggle('open', exp[id]);
+  if (r) r.classList.toggle('open', exp[id]);
+}
+</script>
+</body>
+</html>
