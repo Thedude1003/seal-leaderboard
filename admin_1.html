@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Update Leaderboard Data</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0D2137;--gold:#C8962A;
+  --bg:#F8F9FB;--surface:#FFFFFF;--border:#E4E6EA;--border-strong:#CDD0D6;
+  --text:#1A1D23;--text-2:#52576B;--text-3:#9198AB;
+  --blue-bg:#E6F1FB;--blue-text:#185FA5;
+  --amber-bg:#FEF3E2;--amber-text:#854F0B;
+  --teal-bg:#E1F5EE;--teal-text:#0F6E56;
+  --green:#1D9E75;--green-bg:#E1F5EE;--green-text:#0F6E56;
+  --danger:#C0392B;--danger-bg:#FDEEEC;--danger-text:#8B1A1A;
+  --warn-bg:#FFFBEB;--warn-border:#F5C842;--warn-text:#7A5200;
+  --radius:10px;--radius-sm:6px;
+  --font:'DM Sans',system-ui,sans-serif;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#0F1623;--surface:#19232F;--border:#2A3547;--border-strong:#374860;
+    --text:#E8EDF5;--text-2:#8B97B0;--text-3:#576070;
+    --blue-bg:#0C2040;--blue-text:#7BBCF0;
+    --amber-bg:#2A1E06;--amber-text:#E8A830;
+    --teal-bg:#0A2419;--teal-text:#3DD4A0;
+    --green:#3DD4A0;--green-bg:#0A2419;--green-text:#3DD4A0;
+    --danger:#E07070;--danger-bg:#2A1010;--danger-text:#F0A0A0;
+    --warn-bg:#2A2006;--warn-border:#A07820;--warn-text:#E8C060;
+  }
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.5}
+
+/* ── header ─────────────────────────────────────────────── */
+.site-header{background:var(--navy);padding:0}
+.header-inner{max-width:860px;margin:0 auto;display:flex;align-items:stretch}
+.header-brand{padding:16px 24px;flex:1}
+.header-brand h1{font-size:16px;font-weight:600;color:#fff}
+.header-brand p{font-size:12px;color:#7A9BBF;margin-top:2px}
+.header-right{background:var(--gold);padding:16px 24px;display:flex;align-items:center}
+.header-right a{font-size:12px;color:#fff;text-decoration:none;opacity:.85}
+.header-right a:hover{opacity:1}
+
+/* ── page ───────────────────────────────────────────────── */
+.page{max-width:860px;margin:0 auto;padding:28px 20px 60px;display:flex;flex-direction:column;gap:20px}
+
+/* ── cards ──────────────────────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px}
+.card-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title svg{opacity:.6}
+
+/* ── form controls ──────────────────────────────────────── */
+label{display:block;font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:4px}
+input[type=text],input[type=password],input[type=date]{
+  width:100%;padding:9px 12px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);
+  background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;
+  transition:border-color .12s;
+}
+input[type=text]:focus,input[type=password]:focus,input[type=date]:focus{
+  outline:none;border-color:var(--blue-text);
+}
+input[type=number]{
+  width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;text-align:right;
+  transition:border-color .12s;
+}
+input[type=number]:focus{outline:none;border-color:var(--blue-text);}
+input.neg-val{color:var(--danger);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.form-row{grid-template-columns:1fr}}
+
+/* ── buttons ────────────────────────────────────────────── */
+.btn{padding:9px 20px;border-radius:var(--radius-sm);font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;transition:opacity .12s;border:none}
+.btn-primary{background:var(--navy);color:#fff}
+.btn-primary:hover{opacity:.88}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{opacity:.88}
+.btn-success:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{background:none;border:1px solid var(--border-strong);color:var(--text-2)}
+.btn-ghost:hover{background:var(--bg)}
+
+/* ── status banners ─────────────────────────────────────── */
+.banner{display:none;padding:11px 14px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:4px}
+.banner.show{display:flex;align-items:flex-start;gap:8px}
+.banner-warn{background:var(--warn-bg);border:1px solid var(--warn-border);color:var(--warn-text)}
+.banner-ok{background:var(--green-bg);border:1px solid var(--green);color:var(--green-text)}
+.banner-err{background:var(--danger-bg);border:1px solid var(--danger);color:var(--danger-text)}
+.banner a{color:inherit;font-weight:600}
+
+/* ── connection status dot ───────────────────────────────── */
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--border-strong);display:inline-block;margin-right:6px;flex-shrink:0;margin-top:4px}
+.status-dot.ok{background:var(--green)}
+.status-dot.err{background:var(--danger)}
+.status-dot.loading{background:var(--gold);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── team section ───────────────────────────────────────── */
+.team-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.team-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.team-label{font-size:14px;font-weight:600;color:var(--text)}
+.team-sublabel{font-size:12px;color:var(--text-3);margin-left:auto}
+
+.kpi-grid{display:grid;grid-template-columns:200px 1fr 1fr 1fr;gap:8px;align-items:center;margin-bottom:6px}
+@media(max-width:540px){.kpi-grid{grid-template-columns:1fr 1fr 1fr;}.kpi-grid .person-label{display:none}}
+.kpi-header{font-size:11px;font-weight:500;color:var(--text-3);text-align:right;letter-spacing:.04em;text-transform:uppercase;padding:0 4px}
+.kpi-header:first-child{text-align:left;padding-left:0}
+.person-label{font-size:13px;color:var(--text);padding:4px 0}
+.tl-badge{font-size:10px;font-weight:600;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle}
+.divider{height:1px;background:var(--border);margin:10px 0}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <h1>&#9998; Update Leaderboard Data</h1>
+      <p>Changes publish directly to GitHub &mdash; live within 60 seconds</p>
+    </div>
+    <div class="header-right">
+      <a href="index.html">&#8592; View leaderboard</a>
+    </div>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- ── GitHub connection ──────────────────────────────── -->
+  <div class="card" id="conn-card">
+    <div class="card-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+      GitHub connection
+    </div>
+
+    <div id="conn-banner" class="banner banner-warn show">
+      <span class="status-dot loading" id="conn-dot"></span>
+      <span id="conn-msg">Enter your GitHub token and repository to get started.</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px" id="conn-form">
+      <div>
+        <label for="gh-token">Personal Access Token</label>
+        <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+        <p style="font-size:11px;color:var(--text-3);margin-top:4px">
+          <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=SEAL+Leaderboard" target="_blank" rel="noopener">Create token ↗</a>
+          &mdash; needs <code>public_repo</code> scope
+        </p>
+      </div>
+      <div>
+        <label for="gh-repo">Repository (owner/repo)</label>
+        <input type="text" id="gh-repo" placeholder="yourname/seal-leaderboard">
+        <p style="font-size:11px;color:var(--text-3);margin-top:4px">Exactly as it appears in your GitHub URL</p>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn btn-primary" onclick="connect()" id="conn-btn">Load current data</button>
+      <button class="btn btn-ghost" onclick="clearConn()">Clear saved settings</button>
+    </div>
+  </div>
+
+  <!-- ── data entry form (hidden until connected) ───────── -->
+  <div id="data-form" style="display:none;flex-direction:column;gap:20px">
+
+    <!-- period -->
+    <div class="card">
+      <div class="card-title">Period &amp; date</div>
+      <div class="form-row">
+        <div>
+          <label for="period-text">Period label (shown on leaderboard)</label>
+          <input type="text" id="period-text" placeholder="e.g. Q2 2026 — Week 3">
+        </div>
+        <div>
+          <label for="last-updated">Last updated date</label>
+          <input type="date" id="last-updated">
+        </div>
+      </div>
+    </div>
+
+    <!-- team 1 -->
+    <div class="card" id="team-card-1">
+      <div class="team-header">
+        <div class="team-dot" style="background:#378ADD"></div>
+        <span class="team-label">SEAL Team 1</span>
+        <span class="team-sublabel">Mike Tigges &mdash; Team Lead</span>
+      </div>
+      <div id="team-inputs-1"></div>
+    </div>
+
+    <!-- team 2 -->
+    <div class="card" id="team-card-2">
+      <div class="team-header">
+        <div class="team-dot" style="background:#C8962A"></div>
+        <span class="team-label">SEAL Team 2</span>
+        <span class="team-sublabel">George Heller &mdash; Team Lead</span>
+      </div>
+      <div id="team-inputs-2"></div>
+    </div>
+
+    <!-- team 3 -->
+    <div class="card" id="team-card-3">
+      <div class="team-header">
+        <div class="team-dot" style="background:#1D9E75"></div>
+        <span class="team-label">SEAL Team 3</span>
+        <span class="team-sublabel">Nick Dormitorio &mdash; Team Lead</span>
+      </div>
+      <div id="team-inputs-3"></div>
+    </div>
+
+    <!-- publish -->
+    <div class="card">
+      <div id="publish-banner" class="banner" style="margin-bottom:12px"></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-success" onclick="publish()" id="publish-btn">
+          &#8593; Publish to GitHub
+        </button>
+        <button class="btn btn-ghost" onclick="reloadData()">&#8635; Reload from GitHub</button>
+        <span style="font-size:12px;color:var(--text-3)">Live on your site within ~60 seconds</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let currentSha='', currentData=null;
+const TEAM_COLORS={1:'#378ADD',2:'#C8962A',3:'#1D9E75'};
+const TL_BG={1:'#E6F1FB',2:'#FEF3E2',3:'#E1F5EE'};
+const TL_TEXT={1:'#185FA5',2:'#854F0B',3:'#0F6E56'};
+
+function getToken(){return document.getElementById('gh-token').value.trim();}
+function getRepo(){return document.getElementById('gh-repo').value.trim();}
+
+function saveConn(){
+  localStorage.setItem('gh-repo', getRepo());
+  // note: we intentionally DON'T save the token to localStorage for security
+}
+
+function clearConn(){
+  localStorage.removeItem('gh-repo');
+  document.getElementById('gh-token').value='';
+  document.getElementById('gh-repo').value='';
+  setConnStatus('idle','Settings cleared. Enter your token and repo to reconnect.');
+  document.getElementById('data-form').style.display='none';
+}
+
+function setConnStatus(state, msg){
+  const dot=document.getElementById('conn-dot');
+  const msgEl=document.getElementById('conn-msg');
+  const banner=document.getElementById('conn-banner');
+  msgEl.textContent=msg;
+  dot.className='status-dot '+(state==='ok'?'ok':state==='err'?'err':'loading');
+  banner.className='banner show '+(state==='ok'?'banner-ok':state==='err'?'banner-err':'banner-warn');
+}
+
+async function connect(){
+  const token=getToken(), repo=getRepo();
+  if(!token||!repo){
+    setConnStatus('err','Please enter both your GitHub token and repository name.');
+    return;
+  }
+  saveConn();
+  setConnStatus('loading','Connecting to GitHub…');
+  document.getElementById('conn-btn').disabled=true;
+  await loadFromGitHub(token, repo);
+  document.getElementById('conn-btn').disabled=false;
+}
+
+async function loadFromGitHub(token, repo){
+  try{
+    const res=await fetch(`https://api.github.com/repos/${repo}/contents/data.json`,{
+      headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'}
+    });
+    if(res.status===401){setConnStatus('err','Invalid token — check your Personal Access Token and try again.');return;}
+    if(res.status===404){setConnStatus('err','File not found — make sure data.json exists in your repo root, or upload it first.');return;}
+    if(!res.ok){setConnStatus('err','GitHub returned an error: '+res.status+' '+res.statusText);return;}
+    const meta=await res.json();
+    currentSha=meta.sha;
+    const json=atob(meta.content.replace(/\n/g,''));
+    currentData=JSON.parse(json);
+    setConnStatus('ok','Connected to '+repo+' — data loaded successfully.');
+    populateForm(currentData);
+    document.getElementById('data-form').style.display='flex';
+  }catch(e){
+    setConnStatus('err','Connection failed: '+e.message);
+  }
+}
+
+async function reloadData(){
+  const token=getToken(), repo=getRepo();
+  if(!token||!repo){setConnStatus('err','Please re-enter your token and repo above.');return;}
+  setConnStatus('loading','Reloading from GitHub…');
+  await loadFromGitHub(token, repo);
+}
+
+function populateForm(data){
+  document.getElementById('period-text').value=data.period||'';
+  document.getElementById('last-updated').value=data.lastUpdated||new Date().toISOString().slice(0,10);
+  data.teams.forEach(team=>{
+    const container=document.getElementById('team-inputs-'+team.id);
+    if(!container) return;
+    const allPersons=[{person:team.tl,isTL:true},...team.members.map(m=>({person:m,isTL:false}))];
+    container.innerHTML=buildTeamInputs(team.id, allPersons);
+    colorNegInputs(team.id);
+  });
+}
+
+function buildTeamInputs(tid, persons){
+  const header=`<div class="kpi-grid" style="margin-bottom:8px">
+    <div class="kpi-header">Name</div>
+    <div class="kpi-header">Close %</div>
+    <div class="kpi-header">Net sales ($)</div>
+    <div class="kpi-header">ADL ($)</div>
+  </div>`;
+  const rows=persons.map(({person, isTL})=>{
+    const cr=person.closeRate!==null&&person.closeRate!==undefined?(person.closeRate*100).toFixed(2):'';
+    const ns=person.netSales!==null&&person.netSales!==undefined?person.netSales.toFixed(2):'';
+    const adl=person.adl!==null&&person.adl!==undefined?person.adl.toFixed(2):'';
+    const tlBadge=isTL?`<span class="tl-badge" style="background:${TL_BG[tid]};color:${TL_TEXT[tid]}">TL</span>`:'';
+    return `<div class="kpi-grid">
+      <div class="person-label">${person.name}${tlBadge}</div>
+      <input type="number" step="0.01" min="0" max="100" placeholder="—"
+        data-team="${tid}" data-name="${person.name}" data-field="closeRate"
+        value="${cr}" oninput="colorNeg(this)">
+      <input type="number" step="0.01" placeholder="—"
+        data-team="${tid}" data-name="${person.name}" data-field="netSales"
+        value="${ns}" oninput="colorNeg(this)">
+      <input type="number" step="0.01" placeholder="—"
+        data-team="${tid}" data-name="${person.name}" data-field="adl"
+        value="${adl}" oninput="colorNeg(this)">
+    </div>`;
+  }).join('<div class="divider"></div>');
+  return header+rows;
+}
+
+function colorNeg(input){
+  input.classList.toggle('neg-val', parseFloat(input.value)<0);
+}
+function colorNegInputs(tid){
+  document.querySelectorAll(`[data-team="${tid}"]`).forEach(colorNeg);
+}
+
+function collectData(){
+  const d=JSON.parse(JSON.stringify(currentData));
+  d.period=document.getElementById('period-text').value.trim()||d.period;
+  d.lastUpdated=document.getElementById('last-updated').value||new Date().toISOString().slice(0,10);
+
+  d.teams.forEach(team=>{
+    const allPersons=[team.tl, ...team.members];
+    allPersons.forEach(person=>{
+      const inputs=document.querySelectorAll(`[data-team="${team.id}"][data-name="${person.name}"]`);
+      inputs.forEach(inp=>{
+        const raw=inp.value.trim();
+        const val=raw===''?null:parseFloat(raw);
+        if(inp.dataset.field==='closeRate') person.closeRate=val!==null?+(val/100).toFixed(6):null;
+        else person[inp.dataset.field]=val;
+      });
+    });
+  });
+  return d;
+}
+
+async function publish(){
+  const token=getToken(), repo=getRepo();
+  if(!token||!repo){
+    showPublishBanner('err','Please enter your GitHub token and repo above, then load data before publishing.');
+    return;
+  }
+  if(!currentSha){
+    showPublishBanner('err','No data loaded yet — click "Load current data" first.');
+    return;
+  }
+  const btn=document.getElementById('publish-btn');
+  btn.disabled=true;
+  btn.textContent='Publishing…';
+  showPublishBanner('info','Sending to GitHub…');
+
+  try{
+    const newData=collectData();
+    const json=JSON.stringify(newData,null,2);
+    const encoded=btoa(unescape(encodeURIComponent(json)));
+    const today=newData.lastUpdated||new Date().toISOString().slice(0,10);
+
+    const res=await fetch(`https://api.github.com/repos/${repo}/contents/data.json`,{
+      method:'PUT',
+      headers:{
+        'Authorization':'Bearer '+token,
+        'Accept':'application/vnd.github+json',
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
+        message:`Update leaderboard data — ${today}`,
+        content:encoded,
+        sha:currentSha
+      })
+    });
+
+    if(res.status===401){showPublishBanner('err','Auth failed — your token may be expired. Generate a new one.');btn.disabled=false;btn.textContent='⬆ Publish to GitHub';return;}
+    if(!res.ok){const e=await res.json();showPublishBanner('err','GitHub error: '+(e.message||res.status));btn.disabled=false;btn.textContent='⬆ Publish to GitHub';return;}
+
+    const result=await res.json();
+    currentSha=result.content.sha;
+    currentData=newData;
+    const liveUrl=`https://${repo.split('/')[0]}.github.io/${repo.split('/')[1]}`;
+    showPublishBanner('ok',`Published! Your leaderboard will update within 60 seconds. <a href="${liveUrl}" target="_blank" rel="noopener">View live ↗</a>`);
+  }catch(e){
+    showPublishBanner('err','Failed: '+e.message);
+  }
+  btn.disabled=false;
+  btn.textContent='⬆ Publish to GitHub';
+}
+
+function showPublishBanner(type, msg){
+  const b=document.getElementById('publish-banner');
+  b.className='banner show '+(type==='ok'?'banner-ok':type==='err'?'banner-err':'banner-warn');
+  b.innerHTML=msg;
+  b.style.display='flex';
+}
+
+// Restore saved repo on load
+window.addEventListener('DOMContentLoaded',()=>{
+  const savedRepo=localStorage.getItem('gh-repo');
+  if(savedRepo) document.getElementById('gh-repo').value=savedRepo;
+  setConnStatus('idle','Enter your GitHub token and repository to get started.');
+});
+</script>
+</body>
+</html>

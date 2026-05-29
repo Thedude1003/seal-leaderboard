@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEAL Team Leaderboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0D2137;--gold:#C8962A;--blue:#2E75B6;--teal:#1D9E75;
+  --bg:#F8F9FB;--surface:#FFFFFF;--border:#E4E6EA;--border-strong:#CDD0D6;
+  --text:#1A1D23;--text-2:#52576B;--text-3:#9198AB;
+  --blue-bg:#E6F1FB;--blue-text:#185FA5;--blue-bar:#378ADD;
+  --amber-bg:#FEF3E2;--amber-text:#854F0B;--amber-bar:#C8962A;
+  --teal-bg:#E1F5EE;--teal-text:#0F6E56;--teal-bar:#1D9E75;
+  --rank1-bg:#FEF3E2;--rank1-text:#854F0B;
+  --rank2-bg:#F1F0EE;--rank2-text:#5F5E5A;
+  --rank3-bg:#FAECE7;--rank3-text:#993C1D;
+  --danger:#C0392B;--danger-bg:#FDEEEC;
+  --radius:10px;--radius-sm:6px;
+  --font:'DM Sans',system-ui,sans-serif;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#0F1623;--surface:#19232F;--border:#2A3547;--border-strong:#374860;
+    --text:#E8EDF5;--text-2:#8B97B0;--text-3:#576070;
+    --blue-bg:#0C2040;--blue-text:#7BBCF0;--blue-bar:#378ADD;
+    --amber-bg:#2A1E06;--amber-text:#E8A830;--amber-bar:#C8962A;
+    --teal-bg:#0A2419;--teal-text:#3DD4A0;--teal-bar:#1D9E75;
+    --rank1-bg:#2A1E06;--rank1-text:#E8A830;
+    --rank2-bg:#1E2228;--rank2-text:#8B97B0;
+    --rank3-bg:#2A1108;--rank3-text:#E07050;
+    --danger:#E07070;--danger-bg:#2A1010;
+  }
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.5}
+a{color:var(--blue-text);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ── header ─────────────────────────────────────────────── */
+.site-header{background:var(--navy);padding:0}
+.header-inner{max-width:960px;margin:0 auto;display:flex;align-items:stretch}
+.header-brand{padding:18px 24px;flex:1}
+.header-brand h1{font-size:17px;font-weight:600;color:#fff;letter-spacing:.01em}
+.header-brand p{font-size:12px;color:#7A9BBF;margin-top:2px}
+.header-badge{background:var(--gold);padding:18px 24px;display:flex;flex-direction:column;justify-content:center;text-align:right;min-width:180px}
+.header-badge span{font-size:11px;font-weight:600;color:#fff;letter-spacing:.08em;text-transform:uppercase}
+.header-badge small{font-size:11px;color:#FDE8B0;margin-top:2px}
+
+/* ── layout ─────────────────────────────────────────────── */
+.page{max-width:960px;margin:0 auto;padding:28px 20px 60px}
+
+/* ── toolbar ─────────────────────────────────────────────── */
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.meta{font-size:13px;color:var(--text-2)}
+.meta strong{color:var(--text);font-weight:500}
+.kpi-group{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.kpi-btn{padding:8px 18px;border:none;background:none;cursor:pointer;font-family:var(--font);font-size:13px;color:var(--text-2);font-weight:500;transition:background .12s,color .12s;white-space:nowrap}
+.kpi-btn:not(:last-child){border-right:1px solid var(--border)}
+.kpi-btn.active{background:var(--navy);color:#fff}
+.kpi-btn:hover:not(.active){background:var(--bg)}
+
+/* ── leaderboard cards ───────────────────────────────────── */
+#board{display:flex;flex-direction:column;gap:10px}
+.tl-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .15s,box-shadow .15s}
+.tl-card:hover{border-color:var(--border-strong)}
+.tl-card.open{border-color:var(--border-strong)}
+.tl-header{display:grid;grid-template-columns:40px 52px 1fr 120px 130px 32px;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;user-select:none}
+@media(max-width:600px){.tl-header{grid-template-columns:36px 44px 1fr 90px 36px;gap:10px;padding:12px 14px}}
+
+.rank-badge{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0}
+.tl-name{font-size:15px;font-weight:500;color:var(--text)}
+.tl-team{font-size:12px;margin-top:1px}
+.kpi-val{font-size:22px;font-weight:600;color:var(--text);text-align:right;white-space:nowrap}
+.kpi-rank{font-size:11px;color:var(--text-3);text-align:right;margin-top:1px}
+.bar-wrap{display:flex;flex-direction:column;gap:4px}
+.bar-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .45s cubic-bezier(.4,0,.2,1)}
+.bar-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text-3)}
+.chevron{transition:transform .2s;color:var(--text-3);font-size:20px;line-height:1}
+
+@media(max-width:600px){.bar-wrap{display:none}.kpi-val{font-size:18px}}
+
+/* ── expanded rep section ────────────────────────────────── */
+.rep-section{display:none;border-top:1px solid var(--border)}
+.rep-section.open{display:block}
+.rep-table{width:100%;border-collapse:collapse}
+.rep-thead th{padding:8px 18px;font-size:11px;font-weight:500;color:var(--text-3);text-align:left;letter-spacing:.05em;text-transform:uppercase;background:var(--bg)}
+.rep-thead th:nth-child(2){text-align:right}
+.rep-row td{padding:9px 18px;font-size:13px;border-top:1px solid var(--border)}
+.rep-row:hover td{background:var(--bg)}
+.rep-name{color:var(--text);font-weight:400}
+.rep-val{text-align:right;font-weight:500;color:var(--text);white-space:nowrap}
+.rep-bar-cell{width:160px;padding-right:18px}
+.rep-bar{height:4px;background:var(--border);border-radius:2px;margin-top:2px;overflow:hidden}
+.rep-bar-fill{height:100%;border-radius:2px;transition:width .3s ease}
+.avg-row td{background:var(--bg);font-weight:500;color:var(--text-2);font-style:italic}
+.neg{color:var(--danger)}
+@media(max-width:600px){.rep-bar-cell{display:none}}
+
+/* ── footer ──────────────────────────────────────────────── */
+.page-footer{max-width:960px;margin:0 auto;padding:0 20px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.page-footer p{font-size:12px;color:var(--text-3)}
+
+/* ── loading / error states ─────────────────────────────── */
+.state-msg{padding:60px 20px;text-align:center;color:var(--text-2)}
+.state-msg svg{display:block;margin:0 auto 12px;opacity:.35}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <h1>SEAL Team Leaderboard</h1>
+      <p>Sales Execution &amp; Advancement Leadership</p>
+    </div>
+    <div class="header-badge">
+      <span>Executive View</span>
+      <small id="header-period">Loading…</small>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+  <div class="toolbar">
+    <p class="meta">STL personal performance &mdash; <strong id="updated-label">—</strong></p>
+    <div class="kpi-group" role="group" aria-label="Select KPI">
+      <button class="kpi-btn active" data-kpi="netSales"  onclick="setKpi('netSales')">Net sales</button>
+      <button class="kpi-btn"        data-kpi="closeRate" onclick="setKpi('closeRate')">Close %</button>
+      <button class="kpi-btn"        data-kpi="adl"       onclick="setKpi('adl')">ADL</button>
+    </div>
+  </div>
+
+  <div id="board">
+    <div class="state-msg">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Loading leaderboard data…
+    </div>
+  </div>
+</main>
+
+<footer class="page-footer">
+  <p>SEAL Team Program &mdash; Confidential &mdash; Internal use only</p>
+  <a href="admin.html" style="font-size:12px;color:var(--text-3)">&#9998; Update data</a>
+</footer>
+
+<script>
+const COLORS={
+  blue: {bg:'var(--blue-bg)',text:'var(--blue-text)',bar:'var(--blue-bar)'},
+  amber:{bg:'var(--amber-bg)',text:'var(--amber-text)',bar:'var(--amber-bar)'},
+  teal: {bg:'var(--teal-bg)',text:'var(--teal-text)',bar:'var(--teal-bar)'}
+};
+const RANKS=[
+  {bg:'var(--rank1-bg)',text:'var(--rank1-text)',icon:'🏆'},
+  {bg:'var(--rank2-bg)',text:'var(--rank2-text)',icon:'🥈'},
+  {bg:'var(--rank3-bg)',text:'var(--rank3-text)',icon:'🥉'}
+];
+
+let data=null, kpi='netSales', expanded={};
+
+async function init(){
+  try{
+    const r=await fetch('./data.json?t='+Date.now());
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    data=await r.json();
+    document.getElementById('header-period').textContent=data.period||'';
+    document.getElementById('updated-label').textContent='Last updated: '+(data.lastUpdated||'—');
+    render();
+  }catch(e){
+    document.getElementById('board').innerHTML=`<div class="state-msg"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Could not load data.json — ${e.message}</div>`;
+  }
+}
+
+function setKpi(k){
+  kpi=k;
+  document.querySelectorAll('.kpi-btn').forEach(b=>b.classList.toggle('active',b.dataset.kpi===k));
+  render();
+}
+
+function getVal(p){ return kpi==='netSales'?p.netSales:kpi==='closeRate'?p.closeRate:p.adl; }
+
+function fmt(v,short){
+  if(v===null||v===undefined) return '—';
+  if(kpi==='closeRate') return (v*100).toFixed(1)+'%';
+  const abs=Math.abs(v),neg=v<0;
+  let s;
+  if(short&&abs>=1000) s=(neg?'-$':'$')+(abs/1000).toFixed(1)+'k';
+  else s=(neg?'-$':'$')+abs.toLocaleString('en-US',{maximumFractionDigits:0});
+  return s;
+}
+
+function initials(n){return n.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();}
+
+function teamAvg(members){
+  const vals=members.map(m=>getVal(m)).filter(v=>v!==null&&v!==undefined);
+  return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+}
+
+function render(){
+  if(!data) return;
+  const sorted=[...data.teams].sort((a,b)=>{
+    const av=getVal(a.tl)??-Infinity, bv=getVal(b.tl)??-Infinity;
+    return bv-av;
+  });
+  const maxTL=Math.max(...sorted.map(t=>getVal(t.tl)??0),1);
+  const allMembers=data.teams.flatMap(t=>t.members);
+  const memberMax=Math.max(...allMembers.map(m=>getVal(m)).filter(v=>v!=null&&v>0),1);
+
+  document.getElementById('board').innerHTML=sorted.map((team,ri)=>{
+    const val=getVal(team.tl);
+    const pct=Math.max(0,((val??0)/maxTL)*100);
+    const c=COLORS[team.colorClass]||COLORS.blue;
+    const rk=RANKS[ri];
+    const isOpen=!!expanded[team.id];
+
+    const memberRows=team.members.map(m=>{
+      const mv=getVal(m);
+      const mpct=mv!=null&&mv>0?Math.min(100,(mv/memberMax)*100):0;
+      const neg=mv!==null&&mv<0;
+      return `<tr class="rep-row">
+        <td class="rep-name">${m.name}</td>
+        <td class="rep-val ${neg?'neg':''}">${fmt(mv)}</td>
+        <td class="rep-bar-cell">
+          <div class="rep-bar"><div class="rep-bar-fill" style="width:${mpct}%;background:${neg?'var(--danger)':c.bar}"></div></div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    const avg=teamAvg(team.members);
+    const avgRow=avg!==null?`<tr class="rep-row avg-row">
+      <td>Team avg</td><td class="rep-val">${fmt(avg)}</td><td class="rep-bar-cell"></td>
+    </tr>`:'';
+
+    const kpiLabel=kpi==='closeRate'?'Close %':kpi==='netSales'?'Net sales':'ADL';
+
+    return `<div class="tl-card${isOpen?' open':''}" id="card-${team.id}">
+      <div class="tl-header" onclick="toggle(${team.id})" role="button" aria-expanded="${isOpen}" aria-label="${team.tl.name} — ${team.name}">
+        <div class="rank-badge" style="background:${rk.bg};color:${rk.text}">${rk.icon}</div>
+        <div class="avatar" style="background:${c.bg};color:${c.text}">${initials(team.tl.name)}</div>
+        <div>
+          <div class="tl-name">${team.tl.name}</div>
+          <div class="tl-team" style="color:${c.text}">${team.name}</div>
+        </div>
+        <div>
+          <div class="kpi-val">${fmt(val,true)}</div>
+          <div class="kpi-rank">Rank #${ri+1}</div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${c.bar}"></div></div>
+          <div class="bar-meta"><span>${team.members.length} reps</span><span>${Math.round(pct)}%</span></div>
+        </div>
+        <span class="chevron" style="transform:rotate(${isOpen?180:0}deg)">&#8964;</span>
+      </div>
+      <div class="rep-section${isOpen?' open':''}" id="rep-${team.id}">
+        <table class="rep-table">
+          <thead class="rep-thead"><tr><th>Rep</th><th>${kpiLabel}</th><th></th></tr></thead>
+          <tbody>${memberRows}${avgRow}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggle(id){
+  expanded[id]=!expanded[id];
+  render();
+}
+
+init();
+</script>
+</body>
+</html>
